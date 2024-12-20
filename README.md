@@ -115,7 +115,7 @@ This MRS Digital Brain Phantom is a never-ending project! We are happy to receiv
 
 ## Citation
 Should you publish any material that made use of this MRS Phantom Framework, please cite the following paper:
-...
+(coming soon)
 
 ## License
 This project is licensed under the [MIT License](https://github.com/dennisvds/MRS_Digital_Phantom/blob/main/LICENSE.md).
