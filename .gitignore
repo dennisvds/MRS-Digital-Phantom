@@ -1,5 +1,5 @@
 # Ignore checkpoint files and other temporary files
-/.DS_Store
+.DS_Store
 __pycache__/
 .ipynb_checkpoints/
 
