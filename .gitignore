@@ -1,2 +1,10 @@
+# Ignore checkpoint files and other temporary files
 /.DS_Store
-/data
+__pycache__/
+.ipynb_checkpoints/
+
+# Ignore some data files
+data/BigBrainMR/*
+!data/BigBrainMR/.gitkeep
+data/phantom/*
+!data/phantom/.gitkeep
