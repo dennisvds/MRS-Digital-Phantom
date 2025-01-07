@@ -115,7 +115,12 @@ This MRS Digital Brain Phantom is a never-ending project! We are happy to receiv
 
 ## Citation
 Should you publish any material that made use of this MRS Phantom Framework, please cite the following paper:
-(coming soon)
+
+*Preprint (currently under review)*:
+
+[D.M.J. van de Sande, A.T. Gudmundson, S. Murali-Manohar, C.W. Davies-Jenkins, D. Simicic, G. Simegn, İ. Özdemir, S. Amirrajab, J.P. Merkofer, H.J. Zöllner, G. Oeltzschner, R.A.E. Edden A Digital Phantom for 3D MR Spectroscopy Data Simulation.
+](https://arxiv.org/abs/2412.15869)
+
 
 ## License
 This project is licensed under the [MIT License](https://github.com/dennisvds/MRS_Digital_Phantom/blob/main/LICENSE.md).
