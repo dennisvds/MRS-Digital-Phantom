@@ -4,7 +4,5 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Ignore some data files
-data/BigBrainMR/*
-!data/BigBrainMR/.gitkeep
-data/phantom/*
-!data/phantom/.gitkeep
+data/skeletons/BigBrainMR/*
+!data/skeletons/BigBrainMR/.gitkeep
