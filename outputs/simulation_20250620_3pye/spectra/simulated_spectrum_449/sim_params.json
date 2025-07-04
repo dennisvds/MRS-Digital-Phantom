@@ -1,0 +1,55 @@
+{
+    "skeleton": "MRiLab",
+    "path2metabs": "data/metabolites/metab_df_biggaba_no_std.csv",
+    "basis_set_dir": "data/basissets/",
+    "path2basis": "data/basissets/LCModel_Universal_Philips_UnEdited_PRESS_TE35.BASIS",
+    "metabs": [],
+    "basis_set_settings": {
+        "vendor": "Universal_Philips",
+        "localization": "PRESS",
+        "TE": 35
+    },
+    "simulation_params": {
+        "spectral_points": 2048,
+        "TR": 2000.0,
+        "bandwidth": 2000.0,
+        "noise_level": 5.0,
+        "mm_level": 25.0,
+        "mm_json_file": "./data/macromolecules/mm_params_biggaba_v2.json",
+        "lipid_amp_factor": 40.0,
+        "lipid_sigma": 10.0,
+        "lipid_phase_min": -180.0,
+        "lipid_phase_max": 180.0,
+        "lipid_lw_min": 30.0,
+        "lipid_lw_max": 50.0,
+        "water_amp_factor": 25.0,
+        "water_phase_min": -180.0,
+        "water_phase_max": 180.0,
+        "water_damping_min": 0.0,
+        "water_damping_max": 50.0,
+        "shim_amplitude_hz": 2.2,
+        "shim_corr_length": 0.5,
+        "shim_boundary_amp_factor": 1.5,
+        "shim_boundary_smoothing": 2.0
+    },
+    "voxel_definitions": {
+        "coords": [
+            72,
+            102,
+            60,
+            90,
+            106,
+            136
+        ],
+        "size": [
+            30,
+            30,
+            30
+        ],
+        "size_mm": [
+            30.0,
+            30.0,
+            30.0
+        ]
+    }
+}
