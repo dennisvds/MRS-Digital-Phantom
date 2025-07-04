@@ -3,7 +3,9 @@
 __pycache__/
 .ipynb_checkpoints/
 
-# Ignore some data files
+# Ignore some data files (because of their size)
 data/skeletons/BigBrainMR/*
 !data/skeletons/BigBrainMR/.gitkeep
 !data/skeletons/BigBrainMR/README.md
+
+**/derivatives/**/*.mat
