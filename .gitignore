@@ -6,3 +6,4 @@ __pycache__/
 # Ignore some data files
 data/skeletons/BigBrainMR/*
 !data/skeletons/BigBrainMR/.gitkeep
+!data/skeletons/BigBrainMR/README.md
