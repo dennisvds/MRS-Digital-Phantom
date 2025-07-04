@@ -1,9 +1,0 @@
-labels include: 
-background,0
-skull,1
-WM,2
-GM,3
-CSF,4
-fat,5
-menengies1,6
-menengies2,7
