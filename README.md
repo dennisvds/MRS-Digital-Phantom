@@ -1,85 +1,94 @@
 # MRS Digital Brain Phantom Framework
 
 ## Overview
-This repository contains the code for the **3D MRS Digital Brain Phantom Framework**, a tool for simulating Magnetic Resonance Spectroscopy (MRS) and Spectroscopic Imaging (MRSI) data. The framework is designed to be comprehensive and flexible, allowing researchers to generate MRS data efficiently for their own applications.
+This repository contains the code for the **MRS Digital Brain Phantom Framework**, a tool for simulating Magnetic Resonance Spectroscopy (MRS) data. The framework is designed to be comprehensive and flexible, allowing researchers to generate MRS data efficiently for their own applications.
 
 <figure style="text-align: center;">
     <img src="media/framework.png" alt="Sample Figure" width="800" />
+    <figcaption>Figure 1: Structure of the 3D MRS digital brain phantom framework. The framework is divided into three stages: Skeleton, MRS Phantom, and Simulation. Each stage allows for user-defined inputs, making the framework highly modular and customizable for various applications. This example uses the ‘BigBrain-MR’ skeleton source.</figcaption>
 </figure>
 
 ## Getting Started
 
 ### Prerequisites
-Make sure you have the following installed:
 
-- [Python](https://www.python.org/) (>= 3.9)
-- [conda](https://docs.conda.io/en/latest/) (optional, but recommended)
-- [Jupyter](https://jupyter.org/install) (JupyterLab or Jupyter Notebook to run the .ipynb files)
+Ensure the following dependencies are installed:
 
+- **[Python ≥ 3.10](https://www.python.org/)**  
+- **[Conda](https://docs.conda.io/en/latest/)** *(optional but recommended)*  
+- **[Jupyter](https://jupyter.org/install)** (JupyterLab or Jupyter Notebook, to run `.ipynb` files)
+
+- **GNU Octave ≥ 4.0**  
+  Required for simulating lipid signals and basis sets.
+
+  **Installation instructions:**
+
+  - **Windows**  
+    Download the latest *MinGW* version from the [GNU Octave website](https://www.gnu.org/software/octave/download.html).  
+    During installation, make sure to add Octave to your system's `PATH`. You can do this during setup or by manually adding the path to the `bin` directory to your environment variables.
+
+  - **macOS**  
+    Install using Homebrew:
+
+    ```bash
+    brew install octave
+    ```
+
+  - **Linux**  
+    Use your distribution’s package manager. For example, on Ubuntu:
+
+    ```bash
+    sudo apt-get update
+    sudo apt-get install octave
+    ```
+
+  **To verify installation**, run:
+
+  ```bash
+  octave --version
 ### Installation
 
-#### Option 1: Using `conda` Environment
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dennisvds/MRS_Digital_Phantom.git
-   cd MRS_Digital_Phantom
-   ```
-2. Create an environment using conda:
-   ```bash
-   conda create --name brainphantom python=3.9
-   ```
-   *Note:* Python version should be **3.9** or higher.
+This project uses a `pyproject.toml` file to declare dependencies and package metadata according to [PEP 621](https://peps.python.org/pep-0621/). You can install the project and its dependencies using standard Python tools.
 
-3. Activate the environment:
-   ```bash
-   conda activate brainphantom
-   ```
-4. Install packages using script:
-   ```bash
-   ./installation/install_conda.sh
-   ```
+### 1. Clone the repository
 
-#### Option 2: Using Python Virtual Environment (`venv`)
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dennisvds/MRS_Digital_Phantom.git
-   cd MRS_Digital_Phantom
-   ```
-2. Create a virtual environment:
-   ```bash
-   python -m venv brainphantom
-   ```
-3. Activate virtual environment:
-   on macOS/Linux:
-   ```bash
-   source brainphantom/bin/activate
-   ```
-   on Windows:
-   ```bash
-   brainphantom\Scripts\activate
-   ```
-4. Install packages using script:
-   ```bash
-   ./installation/install_pip.sh
-   ```
-   *Note:* FSL-MRS does not have a PIP-installation. Refer to the [FSL-MRS Documentation](https://open.win.ox.ac.uk/pages/fsl/fsl_mrs/install.html) to install this package.
+```bash
+git clone https://github.com/yourusername/yourproject.git
+cd yourproject
+```
 
-#### Packages
-If you want install the packages yourself, here is a list of the packages that are installed:
-- ipykernel
-- fsl_mrs
-- torchio
-- ipywidget
-- openxyl
-- ipympl
+### 2. Create and activate a new virtual environment (recommended)
+#### Using `conda`:
+```bash
+conda create -n mrs-env python=3.10
+conda activate mrs-env
+```
+#### Using `venv`:
+```bash
+python -m venv .venv
+source .venv/bin/activate        # macOS/Linux
+.venv\Scripts\activate           # Windows
+```
 
-Development has been done using Python 3.12
+### 3. Install dependencies
+To install all relevant dependencies, run:
+```bash
+pip install .
+```
+This installs your package along with all dependencies listed in `pyproject.toml`
 
-### Data
-Data for the **BigBrain-MR phantom** can be downloaded [**here**](https://zenodo.org/records/7432527). All other data is available in this respository. If you want to add your own skeletons and/or metabolite dataframe, you can add or change the files in the data folder. 
+### 4. Install `fsl-mrs`
+This project also depends on `fsl-mrs`, which cannot be installed via `pip`. If using `conda` you can install it using:
+```bash
+conda install -c conda-forge \
+              -c https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/ \
+              fsl_mrs
+```
+For detailed instructions and other install options, have a look at the [**Installation Instructions**](https://open.win.ox.ac.uk/pages/fsl/fsl_mrs/install.html) in the user documentation. 
 
-### Example Usage
-There is a Demonstration Jupyter Notebook in this repository that will go over all steps of generating the MRS Phantom and on how to generate spectral data using it. [View the Notebook](https://github.com/dennisvds/MRS_Digital_Phantom/blob/main/Demo_MRS_Phantom.ipynb).
+
+### 5. Downloading Data
+To use the **BigBrain-MR phantom**, you can download the data [**here**](https://zenodo.org/records/7432527). All other data is available in this respository. If you want to use your own skeletons adjustments to the code might be needed.
 
 
 ## Directory Structure
@@ -87,27 +96,49 @@ The following directory structure is used in this project:
 ```
 MRS_Digital_Phantom/
 ├── data/                           # Main folder to store the data
-│   ├── Bassissets/                 # Folder to store basissets
-│   ├── BigBrainMR/                 # Data from the BigBrainMR phantom
-│   ├── metabolites/                # Data for metabolite
-│   ├── MRiLab/                     # Data from the MRiLab phantom
-│   ├── phantom/                    # Folder to store all MRS Phantom data
+│   ├── bassissets/                 # Folder to store basissets
+│   ├── invivo/                     # In-vivo data for comparison analysis
+│   ├── macromolecules/             # Data for metabolite
+│   ├── metabolites/                # Data from the MRiLab phantom
+│   ├── skeletons/                  # Folder to store all MRS Phantom data
+├── gui/                            # Scripts needed to generate and run the GUI elements
 ├── installation/                   # Scripts for installing the necessary packages
-├── loading/                        # Scripts for loading files
 ├── media/                          # Folder containing images for illustration
-├── preprocessing/                  # Preprocessing scripts
-├── simulation/                     # Simulation scripts and signal models 
-├── utils/                          # Utility scripts
-├── computation_test.ipynb          # Notebook used to measure computation times
-├── create_examples.ipynb           # Notebook that shows different variations of spectral simulations
-├── create_figures.ipynb            # Notebook that is used to generate images for the paper
-├── Demo_MRS_Phantom.ipynb          # Main Notebook that showcases the MRS Phantom usage
-├── visualize_mrsi.ipynb            # Notebook to generate MRSI plots (used for paper)
+├── notebooks/                      # Folder containing notebooks used for results in the paper
+│   ├── analysis.ipynb                  # Notebook used to generate paper results for in-vivo vs simulated data comparison
+│   ├── generate_data.ipynb             # Notebook used to generate batches of simulated data using configuration files
+│   ├── plot_variations.ipynb           # Notebook used to generate paper results for variations in simulated data
+├── outputs/                        # Folder containing simulation outputs used in the publication
+├── simulation/                     # Folder with simulation scripts and signal models
+│   ├── basissets/                  # Code for generating basissets using MRSCloud [REF]
+│   ├── FID-A/                      # FID-A code needed for basisset and lipid generation
+│   ├── lipids/                     # Code for generating lipid signal based on SimnTG
+│   ├── macromolecules/             # Code for generating macromolecules signals based on
+│   ├── water                       # Code for generating residual water signals based on
+├── utils/                          # Utility scripts for plotting, loading, and setting definitions
+├── config.json                     # Example of a configuration file in .JSON format
+├── main.py                         # Main script that runs the GUI
 ├── environment.yml                 # Conda environment file
 ├── requirements.txt                # Python dependencies
 └── README.md                       # Project documentation (this file)
 ```
 
+## Usage
+
+With everything installed and the data in the correct folder structure, you can run the MRS digital phantom:
+```bash
+python main.py
+```
+This will open de GUI.
+
+<figure style="text-align: center;">
+    <img src="media/GUI.png" alt="Sample Figure" width="800" />
+    <figcaption> Figure 2: Screenshot of the graphical user interface (GUI) of the digital MRS phantom. The left panel (green box) displays settings for the skeleton, metabolite dataframe, and basis set. The top panel (purple box) shows the three orthogonal brain views used for voxel placement. The bottom-middle section (blue box) contains the simulation settings panel and message box. The right panel (red box) visualizes the simulated spectrum, including its individual signal components. </figcaption>
+</figure>
+
+
+### Notebooks
+There are a couple of Jupyter Notebooks available in this repository that will go over the batch-wise generation of spectra and analysis methods. These notebooks were used to create the figures in the corresponding paper. [View the Notebooks](https://github.com/dennisvds/MRS_Digital_Phantom/blob/main/Demo_MRS_Phantom.ipynb).
 
 ## Contact, Feedback, Suggestions
 This MRS Digital Brain Phantom is a never-ending project! We are happy to receive your questions, feedback, suggestions, or critique by sending an email to:

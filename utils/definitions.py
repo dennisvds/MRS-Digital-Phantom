@@ -1,5 +1,3 @@
-import numpy as np
-
 ####################################################################################################
 #                                       Metabolite names                                           #
 ####################################################################################################
@@ -58,7 +56,7 @@ METABS = [
     'NAA_Ace',# NAA acetyl
     'NAA_Asp',# NAA aspartyl
 
-    # Macromolecules
+    # Macromolecules (MM + ppm value)
     'MM09',   # MM09
     'MM12',   # MM12
     'MM14',   # MM14
@@ -73,6 +71,9 @@ METABS = [
     'MM37',   # MM37
     'MM38',   # MM38
     'MM42',   # MM42
+
+    # Reference at 0 ppm
+    'Ref0ppm',
 ]
 
 ####################################################################################################
@@ -83,6 +84,8 @@ METABS_TRANSLATION = {
     'Cre': 'Cr',
     'Cre_CH2': 'Cr',
     'Cre_CH3': 'Cr',
+    # Choline
+    'Cho': 'fCho',
     # Myo-inositol
     'Myo': 'mI',
     'Ins': 'mI',
@@ -91,6 +94,7 @@ METABS_TRANSLATION = {
     'Scyllo': 'sI',
     # Glucose
     'Glc ': 'Glc',
+    # 'Glc_B': 'Glc', # Glucose B (not in the list)
     # Glycerophosphocholine
     'GPC_Gly': 'GPC',
     'GPC_Mult': 'GPC',
@@ -153,33 +157,22 @@ GYRO_MAG_RATIO = {
 
 CSF_DATA = {
     'H2O': [55.5, 0, 0, 160], # Based on [1] (T2 based on 1.5T, assuming same for 3T)
-    'Glc': [0, 0, 0, 0],      # Manual input
-    'Lac': [3, 0, 0, 110],    # Manual input
+    'Lac': [0.1, 0, 0, 110],    # Manual input, same T2 as GM in metabolite dataframe
 }
 
+#####################################################################################################
+#                                       Water Concentrations                                        #
+#####################################################################################################
+# Based on literature values:
+# Gasparovic, C., Neeb, H., Feis, D.L., Damaraju, E., Chen, H., Doty, M.J., South, D.M., Mullins, P.G., Bockholt, H.J. and Shah, N.J. (2009), 
+# Quantitative spectroscopic imaging with in situ measurements of tissue water T1, T2, and density. 
+# Magn. Reson. Med., 62: 583-590. https://doi.org/10.1002/mrm.22060
 
-####################################################################################################
-#                                       Lipid contamination                                        #
-####################################################################################################
-# Parameters used to simulate lipid contamination
-# ppms and amplitudes are extracted from LCModel manual (http://lcmodel.ca/pub/LCModel/manual/manual.pdf) (p.141, expectation values for lipids)
-# phases are randomly generated
-lipid_params = {
-    'ppm_pos' : np.array([1.28, 1.28, 1.30, 1.26, 0.89, 2.04]),                 # From LCModel manual
-    'amps' : np.array([2, 2, 2, 2, 3, 1.33])*6000,                              # Amplitudes are scaled by 6000 to match the amplitude of the metabolites
-    'ppm_widths': np.array([0.2, 0.09, 0.09, 0.09, 0.19, 0.2]),                 # From LCModel manual
-    'phases' : np.array([np.random.uniform(-np.pi, np.pi) for _ in range(6)]),  # Randomly generated
-
-}
-
-####################################################################################################
-#                                       Water residual                                            #
-####################################################################################################
-# Parameters used to simulate water residual
-# Values are randomly chosen
-residual_water_params = {
-    'ppm_range': [4.5, 5.5],        # ppm range where the residual water is simulated
-    'scale': 100,                   # y scale of the residual water
-    'smooth': 150,                  # smoothness of the residual water
-    'ylim': [-1, 1],                # y limits of the residual water
+H2O_CONCENTRATIONS = {
+    'Background': 0.0,
+    'WM': 0.703 * 55.5,
+    'GM': 0.851 * 55.5,
+    'CSF': 55.5,
+    'Fat': 0.0,
+    'Skull': 0.0,
 }

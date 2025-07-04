@@ -1,255 +1,70 @@
-import re
+import os
+import pandas as pd
+import torch
+from scipy.fft import fft, fftshift, ifft, ifftshift
+from torch.fft import fft as torch_fft, ifft as torch_ifft, fftshift as torch_fftshift, ifftshift as torch_ifftshift
 import numpy as np
 import nibabel as nib
+import datetime
+from nifti_mrs.create_nmrs import gen_nifti_mrs
 import json
-from scipy.fft import fft, fftshift, ifft, ifftshift
-from tqdm import tqdm
-from scipy.signal import hilbert
-import time
-from contextlib import contextmanager
-import os
-import h5py
-from scipy.ndimage import zoom
-import dask.array as da
-from dask.diagnostics import ProgressBar
+import random
+import string
+import itertools
+from collections import defaultdict
+import ast
 
-def extract_todos(filepath):
-    todos = []
-    with open(filepath, 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            todo_match = re.search(r'#\s*TODO:\s*(.*)', line)
-            if todo_match:
-                todos.append(todo_match.group(1))
-    return todos
-
-@contextmanager
-def timer():
-    start = time.time()
-    yield
-    end = time.time()
-    print(f"Duration: {end - start:.4f} seconds")
-
-def lorentzian(ppm, amplitude, fwhm, center, phase, offset):
-    spec = np.sqrt(2/np.pi) * (fwhm/2 - 1j * (ppm - center)) / (fwhm**2 + (ppm-center)**2) * amplitude * np.exp(1j * phase * np.pi/180)
-    spec = spec + offset
-    return spec.real
+from fsl_mrs.utils.preproc import nifti_mrs_proc as proc
+import fsl_mrs.utils.mrs_io as mrs_io
 
 
-def save_nifti_mrsi(spec_data, basis, affine, etime, rtime, path2save, save_name):
-    # Transfrom spectral data to time domain
-    # spec_data shape: (x, y, z, spectral_points)
-    print("Saving mrs-nifti file...")
-    fid_data = spec2fid(spec_data, axis=-1)
-    fid_data = np.conjugate(fid_data)
+def fid2spec(fid_data, axis=-1, shift=True):
+    if isinstance(fid_data, np.ndarray):
+        if shift:
+            return fftshift(fft(fid_data, axis=axis), axes=axis)
+        else:
+            return fft(fid_data, axis=axis)
+    elif isinstance(fid_data, torch.Tensor):
+        if shift:
+            return torch_fftshift(torch_fft(fid_data, dim=axis), dim=axis)
+        else:
+            return torch_fft(fid_data, dim=axis)
+    else:
+        raise ValueError("Input data type not supported. Must be either numpy array or torch tensor.")
 
-    metadata = {'SpectrometerFrequency': [basis.cf],
-                'ResonantNucleus': ['1H',], 
-                'RepetitionTime': rtime,
-                'EchoTime': etime*1e-3, 
-                'Manufacturer': 'Synthetic' }    
-    
-    # dimensions_dict = {'dim_5': 'DIM_DYN'}   
-    
-    full_metadata = metadata
-    # full_metadata.update(dimensions_dict)
-    metadata_json = json.dumps(full_metadata)
-
-    # Create nifti object
-    newobj = nib.nifti2.Nifti2Image(fid_data, affine=affine)
-
-    # Write new header
-    pixDim = newobj.header['pixdim']
-    pixDim[1:4] = affine.diagonal()[:3]
-    pixDim[4] = basis.dwelltime
-    newobj.header['pixdim'] = pixDim
-
-    # Set q_form = 0
-    newobj.header.set_qform(None,code=0)
-
-    # Set conformance level 
-    newobj.header['intent_name'] = b'mrs_v0_2'
-    newobj.header.extensions.clear()
-
-    # Write extension
-    extension = nib.nifti1.Nifti1Extension(44, metadata_json.encode('UTF-8'))
-    newobj.header.extensions.append(extension)
-
-    # # From nii obj and write 
-    resolution = np.diag(affine)[:3]
-    nib.save(newobj, path2save + f'/{save_name}_{resolution[0]}_{resolution[1]}_{resolution[2]}mm.nii.gz')
-
-    print(f"Done!")
-
-def save_numpy_mrsi(mrsi_data, save_dir, save_name, phantom):
-    # Check if save_dir exists
-    if not os.path.exists(save_dir):
-        raise FileNotFoundError(f"Directory '{save_dir}' does not exist.")
-    # Create save path
-    save_path = os.path.join(save_dir, phantom.skeleton, str(phantom.resolution)+'mm', save_name, '.npy')
-    # Create directory if it does not exist
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    # Save numpy file
-    print(f"Saving numpy file to {save_path}...")
-    np.save(save_path, mrsi_data)
-    print(f"Saving numpy file to {save_path} done!")
-
-    return save_path
-
-def save_hdf5_mrsi(mrsi_data, save_dir, save_name, phantom):
-    # Check if save_dir exists
-    if not os.path.exists(save_dir):
-        raise FileNotFoundError(f"Directory '{save_dir}' does not exist.")
-    # Create save path
-    save_path = os.path.join(save_dir, phantom.skeleton, f"{phantom.resolution}mm", f"{save_name}.h5")
-    # Create directory if it does not exist
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    
-    # Save HDF5 file
-    print(f"Saving MRSI data as HDF5 file to {save_path}...")
-    with h5py.File(save_path, 'w') as h5f:
-        h5f.create_dataset('mrsi_data', data=mrsi_data)
-    print(f"Saving HDF5 file done!")
-    
-    return save_path
-
-
-def fid2spec(fid_data, axis=-1):
-    return fftshift(fft(fid_data, axis=axis), axes=axis)
-
-def spec2fid(spec_data, axis=-1):
-    return ifft(ifftshift(spec_data, axes=axis), axis=axis)
-
-def downsample_mrsi(filename, original_affine, target_resolution):
-    print('Starting downsampling...')
-    with h5py.File(filename, 'r') as h5f:
-        data = da.from_array(h5f['mrsi_data'], chunks=(32, 32, 32, -1))
-        original_resolution = np.diag(original_affine)[:3]
-
-        # Calculate block_size
-        target_resolution = np.array(target_resolution)
-        block_size = np.ceil(target_resolution / original_resolution).astype(int)
-        new_resolution = original_resolution * block_size
-
-        # Check if target resolution is lower than original resolution
-        if not np.all(target_resolution >= original_resolution):
-            raise ValueError(f"Target resolution must be lower than original resolution. Original resolution: {tuple(original_resolution)} mm, target resolution: {tuple(target_resolution)} mm")
-
-        # Calculate the required padding
-        pad_width = [
-            (0, (block_size[i] - data.shape[i] % block_size[i]) % block_size[i])
-            for i in range(3)
-        ] + [(0, 0)]  # No padding for spectral axis
-
-        # Notify if padding is needed
-        if any(pad[0] + pad[1] > 0 for pad in pad_width):  # Only print if padding is non-zero
-            print(f"Padding MRSI data with {pad_width}...")
-
-        # Pad the data to make dimensions divisible by block_size
-        padded_data = da.pad(data, pad_width, mode='constant', constant_values=0.0)
-
-        # Downsample using block averaging
-        block_shape = {i: block_size[i] for i in range(3)}  # Spatial axes (0, 1, 2)
-        block_shape[3] = 1  # Spectral axis (unchanged)
-        reduced_data = da.coarsen(np.mean, padded_data, block_shape)
-
-        # Compute the reduced data
-        print(f"Downsampling metabolic map from {tuple(original_resolution)} mm to {tuple(new_resolution)} mm using block averaging...")
-        with ProgressBar():
-            reduced_data = reduced_data.compute()
-
-        # Remove padding from the reduced data
-        crop_slices = tuple(
-            slice(0, (data.shape[i] // block_size[i]) * block_size[i] // block_size[i])
-            for i in range(3)
-        ) + (slice(None),)  # Keep spectral axis unchanged
-        reduced_data = reduced_data[crop_slices]
-
-    new_affine = np.copy(original_affine)
-    new_affine[:3, :3] = np.diag(new_resolution)
-    print(f"Downsampling completed!")
-    return reduced_data, new_affine
-
-def downsample_metab_map(metab_map, original_affine, target_resolution):
-    print("Starting metabolic map downsampling...")
-    # Convert NumPy array to Dask array, with adjusted chunk size
-    metab_map = da.from_array(metab_map, chunks=(32, 32, 32))  # You can tweak the chunk size
-
-    original_resolution = np.diag(original_affine)[:3]
-
-    # Calculate block_size based on target resolution
-    target_resolution = np.array(target_resolution)
-    block_size = np.ceil(target_resolution / original_resolution).astype(int)
-    new_resolution = original_resolution * block_size
-
-    # Check if target resolution is lower than original resolution
-    if not np.all(target_resolution >= original_resolution):
-        raise ValueError(f"Target resolution must be lower than original resolution. Original resolution: {tuple(original_resolution)} mm, target resolution: {tuple(target_resolution)} mm")
-
-    # Calculate new shape after downsampling
-    new_shape = np.ceil(np.array(metab_map.shape) / block_size).astype(int)
-
-    # Calculate padding needed for each axis to ensure the dimensions are divisible by block_size
-    pad_width = [(0, (block_size[i] - (metab_map.shape[i] % block_size[i])) % block_size[i]) for i in range(3)]
-    
-    # Notify if padding is needed
-    if any(pad[0] + pad[1] > 0 for pad in pad_width):  # Only print if padding is non-zero
-        print(f"Padding metabolic map with {pad_width}...")
-    
-    # Pad the metab_map
-    padded_map = da.pad(metab_map, pad_width, mode='constant', constant_values=0.0)
-
-    # Define block shape for coarsening (downsampling)
-    block_shape = {i: block_size[i] for i in range(3)}  # Only for spatial dimensions
-
-    # Downsample using block averaging
-    print(f"Downsampling metabolic map from {tuple(original_resolution)} mm to {tuple(new_resolution)} mm using block averaging...")
-    reduced_map = da.coarsen(np.mean, padded_map, block_shape)
-
-    # Compute the reduced map (lazy evaluation until this point)
-    # Add progress bar to monitor computation
-    with ProgressBar():
-        reduced_map = reduced_map.compute()
-
-    # Update affine transformation for new resolution
-    new_affine = np.copy(original_affine)
-    new_affine[:3, :3] = np.diag(new_resolution)
-
-    print("Metabolic map downsampling completed!")
-    return reduced_map, new_affine
-
-
-
-
-def get_class_info(cls):
-    class_variables = []
-    instance_variables = []
-    methods = []
-    
-    for item in dir(cls):
-        # Exclude built-in methods and class methods
-        if item.startswith("__") and item.endswith("__"):
-            continue
+def spec2fid(spec_data, axis=-1, shift=True):
+    if isinstance(spec_data, np.ndarray):
+        if shift:
+            return ifft(ifftshift(spec_data, axes=axis), axis=axis)
+        else:
+            return ifft(spec_data, axis=axis)
         
-        value = getattr(cls, item)
-        
-        # Check if it's a class variable and not starting with '_'
-        if not callable(value) and not isinstance(value, staticmethod) and not item.startswith('_'):
-            class_variables.append(item)
-            
-        # Check if it's an instance variable and not starting with '_'
-        elif not callable(value) and not isinstance(value, classmethod) and not isinstance(value, staticmethod) and not item.startswith('_'):
-            instance_variables.append(item)
-            
-        # Check if it's a method and not starting with '_'
-        elif callable(value) and not isinstance(value, classmethod) and not isinstance(value, staticmethod) and not item.startswith('_'):
-            methods.append(item)
+    elif isinstance(spec_data, torch.Tensor):
+        if shift:
+            return torch_ifft(torch_ifftshift(spec_data, dim=axis), dim=axis)
+        else:
+            return torch_ifft(spec_data, dim=axis)
+    else:
+        raise ValueError("Input data type not supported. Must be either numpy array or torch tensor.")
     
-    return class_variables, instance_variables, methods
+def calc_scale_factor(area_1, num_protons_1, area_2, num_protons_2):
+    '''
+    Calculate the scaling factor between two peaks using the area under the curve and the number of protons.
 
+    @param area_1 -- The area of the first peak.
+    @param num_protons_1 -- The number of protons of the first peak.
+    @param area_2 -- The area of the second peak.
+    @param num_protons_2 -- The number of protons of the second peak.
+
+    @returns -- The scaling factor. Can be used to scale the second peak to the first peak. (e.g. peak_2 * scale_factor = peak_1)
+    '''
+
+    scale_factor = (area_1 / num_protons_1) / (area_2 / num_protons_2)
+    return scale_factor
 
 def scale_T1_map(t1_map, labels, tesla=3.0):
     # Scaling factors from Rooney et al. (2007), doi:10.1002/mrm.21122
+    # Scaling 7T maps to 'tesla' T maps (default: 3T)
 
     # Scaling of WM
     t1_wm = t1_map[labels == 1]
@@ -270,129 +85,158 @@ def scale_T1_map(t1_map, labels, tesla=3.0):
 
     return t1_new
 
+def scale_T2_map(t2_map, tesla=3.0):
+    # Scaling is done by assuming a linear relationship between 1/T2 and field strength
+    # Scaling 7T maps to 'tesla' T maps (default: 3T)
 
-#*********************************#
-#   create random walk artifact   #
-#*********************************#
-def randomWalk(ppm_axis, rw_range=[4.5, 5.5], scale=1, smooth=10, ylim=[-1, 1]):
-    """
-        Produces a spectrum with a random walk within a specified ppm range.
-        
-        @param ppm_axis -- The ppm axis of the spectrum (an array of ppm values).
-        @param rw_range -- The range in ppm where the random walk is applied.
-        @param scale -- The y scale of the steps of the walk.
-        @param smooth -- The smoothness of the walk.
-        @param ylim -- The y limits, format [min, max].
-
-        @returns -- The spectrum with the random walk applied only in the rw_range.
-    """
-    waveLength = len(ppm_axis)  # length of the ppm axis
-    spectrum = np.zeros(waveLength)  # initialize spectrum with zeros
-
-    # Find the indices corresponding to the rw_range within the ppm_axis
-    start_idx = np.abs(ppm_axis - rw_range[0]).argmin()
-    end_idx = np.abs(ppm_axis - rw_range[1]).argmin()
-
-    # Initialize the random walk in the rw_range
-    y = np.random.uniform(ylim[0], ylim[1])  # init randomly between limits
-    wave = []
-    for _ in range(end_idx - start_idx):
-        step = np.random.normal(scale=scale)
-        if ylim[0] <= y + step <= ylim[1]:
-            y += step
-        else:
-            y -= step
-        wave.append(y)
+    t2_new = t2_map * (7.0 / tesla)
     
-    # Insert the random walk into the spectrum at the correct indices
-    spectrum[start_idx:end_idx] = wave
+    return t2_new
 
-    # Smooth the spectrum
-    spectrum = np.convolve(spectrum, np.ones(smooth) / smooth, mode='same')
 
-    # Put in the complex domain
-    spectrum = hilbert(spectrum)
-
-    return spectrum
-
-#*********************************#
-#   create random peak artifact   #
-#*********************************#
-def randomPeak(waveLength=1024, batch=1, amp=None, pos=None, width=None, phase=None, td=False):
+def split_config_into_simulations(config_path):
     """
-        Produces a spectrum of a random peak.
-
-        @param waveLength -- The number of points of the spectrum.
-        @param batch -- The number of peaks to produce.
-        @param amp -- The amplitude of the peak.
-        @param pos -- The position of the peak.
-        @param width -- The width of the peak.
-        @param phase -- The phase of the peak.
-        @param td -- If True the spectrum is returned in the time domain.
-
-        @returns -- The random wave shape from the random peak (complex).
+    Splits a single config file into multiple simulation_config_X.json files,
+    based on the list parameters inside the config.
+    
+    Special case:
+    - The 'metabs' parameter must be provided as a list of lists if multiple metabolite sets are intended.
+    
+    Args:
+        config_path (str): Path to the base configuration JSON file.
     """
-    if amp is None: amp = np.ones((batch, 1))
-    if pos is None: pos = np.ones((batch, 1)) * waveLength // 2
-    if width is None: width = np.ones((batch, 1)) * 10
-    if phase is None: phase = np.zeros((batch, 1)) + 0.5
-    t = np.arange(waveLength)[None, :]
+    # === Load config ===
+    with open(config_path, 'r') as f:
+        base_config = json.load(f)
+    
+    # === Find list parameters ===
+    list_params = {}
 
-    x = amp * np.exp(- (t - pos) ** 2 / (2 * width ** 2))
-    x = hilbert(x.real) * np.exp(- 1j * phase)
+    def find_list_params(config, parent_key=""):
+        """Recursively finds parameters that are lists."""
+        for key, value in config.items():
+            if isinstance(value, list):
+                list_params[parent_key + key] = value
+            elif isinstance(value, dict):
+                find_list_params(value, parent_key + key + ".")
 
-    if td: x = np.fft.ifft(x, axis=-1)
-    return x
-
-
-def baseline_init(points, order, first, last):
-    '''
-    Create a baseline regressor for the MRS signal.
-    The regressor is a polynomial of order 'order' with complex coefficients.
-
-    @param points -- The number of points in the spectrum.
-    @param order -- The order of the polynomial.
-    @param first -- The first index of the regressor.
-    @param last -- The last index of the regressor.
-
-    @returns -- The baseline regressor.
-    '''
-    x = np.zeros(points, complex)
-    x[first:last] = np.linspace(-1, 1, last - first)
-    B = []
-    for i in range(order + 1):
-        regressor = x ** i
-        if i > 0:
-            regressor = regress_out(regressor, B, keep_mean=False)
-
-        B.append(regressor.flatten())
-        B.append(1j * regressor.flatten())
-
-    B = np.asarray(B).T
-    tmp = B.copy()
-    B = 0 * B
-    B[first:last, :] = tmp[first:last, :].copy()
-    return B
-
-#***************#
-#   regressor   #
-#***************#
-def regress_out(x, conf, keep_mean=True):
-    """
-    Linear deconfounding
-
-    Ref: Clarke WT, Stagg CJ, Jbabdi S. FSL-MRS: An end-to-end spectroscopy analysis package.
-    Magnetic Resonance in Medicine 2021;85:2950–2964 doi: https://doi.org/10.1002/mrm.28630.
-    """
-    if isinstance(conf, list):
-        confa = np.squeeze(np.asarray(conf)).T
+    find_list_params(base_config)
+    
+    # === Prepare combinations ===
+    if isinstance(base_config.get("metabs", None), list):
+        metab_combinations = base_config["metabs"]
     else:
-        confa = conf
-    if keep_mean:
-        m = np.mean(x, axis=0)
+        metab_combinations = []
+    
+    param_combinations = []
+    for param, values in list_params.items():
+        if param == "metabs":
+            param_combinations.append(metab_combinations)
+        else:
+            param_combinations.append(values)
+
+    all_param_combinations = list(itertools.product(*param_combinations))
+
+    # === Save each configuration ===
+    output_dir = os.path.dirname(config_path)
+    os.makedirs(output_dir, exist_ok=True)
+
+    for index, param_comb in enumerate(all_param_combinations):
+        sim_config = json.loads(json.dumps(base_config))  # Deep copy
+        
+        param_index = 0
+        for param in list_params:
+            value = param_comb[param_index]
+            keys = param.split(".")
+            temp_config = sim_config
+            for key in keys[:-1]:
+                temp_config = temp_config.get(key, {})
+            temp_config[keys[-1]] = value
+            param_index += 1
+
+        output_file = os.path.join(output_dir, f"simulation_config_{index}.json")
+        with open(output_file, 'w') as f:
+            json.dump(sim_config, f, indent=4)
+        print(f"Saved config {output_file}")
+
+    print(f"Generated {len(all_param_combinations)} simulation configuration files.")
+
+def group_simulation_configs_by_settings(config_path):
+    config_dir = os.path.dirname(config_path)
+    all_files = [
+        os.path.join(config_dir, f)
+        for f in os.listdir(config_dir)
+        if 'simulation' in f and f.endswith('.json')
+    ]
+
+    groups = defaultdict(list)
+
+    def extract_settings_key(file_path):
+        with open(file_path, 'r') as f:
+            config = json.load(f)
+        
+        # Remove voxel_definitions for grouping
+        config_copy = dict(config)
+        config_copy.pop("voxel_definitions", None)
+
+        # Make a sorted tuple of (key, value) pairs for hashing
+        return tuple(sorted(flatten_dict(config_copy).items()))
+    
+    def flatten_dict(d, parent_key=''):
+        """Flattens a nested dictionary into a single level."""
+        items = []
+        for k, v in d.items():
+            new_key = parent_key + '.' + k if parent_key else k
+            if isinstance(v, dict):
+                items.extend(flatten_dict(v, new_key).items())
+            else:
+                items.append((new_key, str(v)))
+        return dict(items)
+
+    for file in all_files:
+        key = extract_settings_key(file)
+        groups[key].append(file)
+    
+    return groups
+
+def try_parse_value(value):
+    """Tries to parse a value, converting strings like '30' to integers, '[1, 2, 3]' to lists, etc."""
+    try:
+        # If the value is a string that looks like a list or number, parse it
+        parsed_value = ast.literal_eval(value)
+        return parsed_value
+    except (ValueError, SyntaxError):
+        # If it's not parsable, return it as is (e.g., it's a string or other non-parsable value)
+        return value
+
+def unflatten_dict(settings_key):
+    """Takes a tuple of key-value pairs (from settings_key) and rebuilds a nested dictionary with automatic parsing."""
+    nested = {}
+
+    # Step 1: Convert settings_key (tuple) into a flat dict
+    if isinstance(settings_key, tuple):
+        flat_dict = dict(settings_key)
     else:
-        m = 0
-    return x - confa @ (np.linalg.pinv(confa) @ x) + m
+        flat_dict = settings_key
 
+    # Step 2: Unflatten
+    for compound_key, value in flat_dict.items():
+        keys = compound_key.split('.')
+        d = nested
+        for key in keys[:-1]:
+            if key.isdigit():
+                key = int(key)  # Interpret numbers as list indices
+            if key not in d:
+                d[key] = {} if not isinstance(key, int) else []
+            d = d[key]
+        
+        # Last key handling and parsing the value
+        last_key = keys[-1]
+        if last_key.isdigit():
+            last_key = int(last_key)
 
+        parsed_value = try_parse_value(value)
+        d[last_key] = parsed_value
+
+    return nested
 
