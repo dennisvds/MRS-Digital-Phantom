@@ -53,15 +53,15 @@ This project uses a `pyproject.toml` file to declare dependencies and package me
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/yourproject.git
-cd yourproject
+git clone https://github.com/dennisvds/MRS-Digital-Phantom.git
+cd MRS-Digital-Phantom
 ```
 
 ### 2. Create and activate a new virtual environment (recommended)
 #### Using `conda`:
 ```bash
-conda create -n mrs-env python=3.10
-conda activate mrs-env
+conda create -n mrs-phantom python=3.10
+conda activate mrs-phantom
 ```
 #### Using `venv`:
 ```bash
@@ -105,9 +105,9 @@ MRS_Digital_Phantom/
 ├── installation/                   # Scripts for installing the necessary packages
 ├── media/                          # Folder containing images for illustration
 ├── notebooks/                      # Folder containing notebooks used for results in the paper
-│   ├── analysis.ipynb                  # Notebook used to generate paper results for in-vivo vs simulated data comparison
-│   ├── generate_data.ipynb             # Notebook used to generate batches of simulated data using configuration files
-│   ├── plot_variations.ipynb           # Notebook used to generate paper results for variations in simulated data
+│   ├── analysis.ipynb              # Notebook used to generate paper results for in-vivo vs simulated data comparison
+│   ├── generate_data.ipynb         # Notebook used to generate batches of simulated data using configuration files
+│   ├── plot_variations.ipynb       # Notebook used to generate paper results for variations in simulated data
 ├── outputs/                        # Folder containing simulation outputs used in the publication
 ├── simulation/                     # Folder with simulation scripts and signal models
 │   ├── basissets/                  # Code for generating basissets using MRSCloud [REF]
@@ -129,12 +129,19 @@ With everything installed and the data in the correct folder structure, you can 
 ```bash
 python main.py
 ```
-This will open de GUI.
+This will open the GUI, which may take a few moments to launch.
 
 <figure style="text-align: center;">
     <img src="media/GUI.png" alt="Sample Figure" width="800" />
     <figcaption> Figure 2: Screenshot of the graphical user interface (GUI) of the digital MRS phantom. The left panel (green box) displays settings for the skeleton, metabolite dataframe, and basis set. The top panel (purple box) shows the three orthogonal brain views used for voxel placement. The bottom-middle section (blue box) contains the simulation settings panel and message box. The right panel (red box) visualizes the simulated spectrum, including its individual signal components. </figcaption>
 </figure>
+
+> #### Stability Note
+> While the GUI is fully functional and has been tested across platforms, users may occasionally encounter instability  
+> (e.g., unexpected crashes or segmentation faults), especially when using certain Python/Qt configurations or interactive environments.  
+>
+> We recommend launching the GUI from a clean virtual environment and avoiding conflicting toolkits or background processes.  
+> If issues persist, restarting the environment or switching between `pip` and `conda` installations of PyQt5 may help.  
 
 
 ### Notebooks
