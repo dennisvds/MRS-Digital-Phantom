@@ -10,6 +10,14 @@ This repository contains the code for the **MRS Digital Brain Phantom Framework*
 
 ## Getting Started
 
+### Using Pixi
+
+On MacOS and linux you can use the [Pixi](https://pixi.sh/latest/) package manager to run the simulator.
+
+First [install Pixi](https://pixi.sh/latest/installation/) by running `curl -fsSL https://pixi.sh/install.sh | sh`
+
+Then run the simulator by calling `pixi run simulator` in the cloned repository.
+
 ### Prerequisites
 
 Ensure the following dependencies are installed:
