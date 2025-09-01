@@ -56,6 +56,9 @@ class SignalModel:
         voi_labels = voi_labels.to(torch.complex64)
         voi_labels_flat = voi_labels.view(-1, voi_labels.shape[-1])
 
+        # Calculate the voxel volume in mm^3
+        voxel_volume = torch.prod(torch.tensor(self.simulation_params['voxel_spacing']))
+
         # ---- Shim map simulation ---- #
         self.log("Simulating shim map...")
         self.shim_map = self.simulate_shim_map(voi_labels)
@@ -65,7 +68,9 @@ class SignalModel:
         metab_spectra = self.simulate_metabs()
         spec_metabs = torch.matmul(voi_labels_flat, metab_spectra)
         spec_metabs = spec_metabs.view(*voi_labels.shape[:3], -1)
-        spec_metabs = self.apply_shim_map(spec_metabs, self.shim_map).mean((0, 1, 2))
+        spec_metabs = self.apply_shim_map(spec_metabs, self.shim_map)
+        spec_metabs *= voxel_volume  # Scale by voxel volume
+        spec_metabs = spec_metabs.sum((0, 1, 2))  # Sum over the VOI dimensions
         spec += spec_metabs
 
         # ---- Macromolecule signal ---- #
@@ -74,7 +79,9 @@ class SignalModel:
         spec_mms = torch.matmul(voi_labels_flat, mm_specs)
         spec_mms = spec_mms.view(*voi_labels.shape[:3], -1)
         spec_mms *= self.simulation_params['mm_level'] * 1e3
-        spec_mms = self.apply_shim_map(spec_mms, self.shim_map).mean((0, 1, 2))
+        spec_mms = self.apply_shim_map(spec_mms, self.shim_map)
+        spec_mms *= voxel_volume  # Scale by voxel volume
+        spec_mms = spec_mms.sum((0, 1, 2))  # Sum over the VOI dimensions
         spec += spec_mms
 
         # ---- Lipid signal ---- #
@@ -82,7 +89,9 @@ class SignalModel:
         lipids_spec = self.simulate_lipids(voi_labels, voi_lipid_mask)
         spec_lipids = voi_lipid_mask[..., None] * lipids_spec[None, None, None, :]
         spec_lipids *= self.simulation_params['lipid_amp_factor']
-        spec_lipids = self.apply_shim_map(spec_lipids, self.shim_map).mean((0, 1, 2))
+        spec_lipids = self.apply_shim_map(spec_lipids, self.shim_map)
+        spec_lipids *= voxel_volume  # Scale by voxel volume
+        spec_lipids = spec_lipids.sum((0, 1, 2))  # Sum over the VOI dimensions
         spec += spec_lipids
 
         # ---- Water signal ---- #
@@ -90,15 +99,15 @@ class SignalModel:
         specs_water = self.simulate_water()
         spec_water = torch.matmul(voi_labels_flat, specs_water)
         spec_water = spec_water.view(*voi_labels.shape[:3], -1)
-        spec_water = self.apply_shim_map(spec_water, self.shim_map).mean((0, 1, 2))
+        spec_water = self.apply_shim_map(spec_water, self.shim_map)
+        spec_water *= voxel_volume  # Scale by voxel volume
+        spec_water = spec_water.sum((0, 1, 2))  # Sum over the VOI dimensions
         spec += spec_water
 
         # ---- Add Noise ---- #
         self.log("Simulating noise...")
-        noise_shape = (*voi_labels.shape[:3], self.basis.n)
-        noise_std = self.simulation_params['noise_level'] / self.simulation_params['voxel_spacing'][0] * 1e3
-        spec_noise = (torch.randn(noise_shape) + 1j * torch.randn(noise_shape)) * noise_std
-        spec_noise = spec_noise.mean((0, 1, 2))
+        noise_std = self.simulation_params['noise_level'] * 2e4  # Empirical scaling factor to match noise level
+        spec_noise = (torch.randn(spec.shape) + 1j * torch.randn(spec.shape)) * noise_std
         spec += spec_noise
 
         components = {
