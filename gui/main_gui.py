@@ -94,6 +94,15 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
+        # Disable buttons that require prior steps
+        self.set_simulation_controls_enabled(False)
+
+    def set_simulation_controls_enabled(self, enabled: bool):
+        self.voxel_size_widget.setEnabled(enabled)
+        self.simulation_settings.setEnabled(enabled)
+        self.generate_spectrum_button.setEnabled(enabled)
+        self.save_nifti_button.setEnabled(enabled)
+
 
     def init_skeleton_settings(self):
         # Create the left panel for inputs

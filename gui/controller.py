@@ -164,6 +164,9 @@ class Controller:
         self.gui.log_message(f"✅ Metabolite DataFrame path: {self.gui.metab_df_path}")
         self.gui.log_message(f"✅ Basis set path: {self.gui.path2basis}")
 
+        # Enable the simulation controls in the GUI
+        self.gui.set_simulation_controls_enabled(True)
+
         self.disable_left_panel()
     
     def load_phantom_debug(self):
@@ -229,6 +232,9 @@ class Controller:
         self.gui.skeleton_panel.setEnabled(True)
         self.gui.data_selection_panel.setEnabled(True)
         self.gui.basisset_panel.setEnabled(True)
+
+        # Disable the simulation controls in the GUI
+        self.gui.set_simulation_controls_enabled(False)
 
         # Reset the plots
         self.gui.phantom_viewer.reset()
