@@ -91,6 +91,8 @@ class DigitalPhantom:
             return self.subject['T1wImage'].data.numpy()[0]
         elif self.skeleton == 'MRiLab':
             return self.subject['PD'].data.numpy()[0]
+        elif self.skeleton == 'Custom':
+            return self.subject['T1'].data.numpy()[0]
         else:
             raise NotImplementedError(f"Image type for skeleton '{self.skeleton}' not implemented.")
 
@@ -109,6 +111,19 @@ class DigitalPhantom:
             num_classes = len(torch.unique(label_map))
             return torch.nn.functional.one_hot(label_map.long(), num_classes=num_classes)
         return label_map
+    
+    def get_B0_data(self):
+        """
+        Returns the B0 field map data for the skeleton.
+
+        Returns:
+            np.ndarray: 3D B0 field map data.
+        """
+        if 'B0' in self.subject:
+            return self.subject['B0'].data.numpy()[0]
+        else:
+            self._log("⚠️ No B0 field map available for this skeleton.")
+            return None
 
     def simulate_data(self, voi_coords):
         """
@@ -123,7 +138,12 @@ class DigitalPhantom:
         x0, x1, y0, y1, z0, z1 = voi_coords
         voi_labels = self.get_label_data(one_hot=True)[x0:x1, y0:y1, z0:z1]
         voi_lipid_mask = self.lipid_mask[x0:x1, y0:y1, z0:z1]
-        spec, components = self.signal_model.simulate_mrs_data(voi_labels, voi_lipid_mask)
+
+        # If B0 map is available, pass it to the signal model
+        if 'B0' in self.subject:
+            voi_B0_map = self.get_B0_data()[x0:x1, y0:y1, z0:z1]
+
+        spec, components = self.signal_model.simulate_mrs_data(voi_labels, voi_lipid_mask, B0_map=voi_B0_map if 'B0' in self.subject else None)
         return spec, components, self.basis_set.t, self.basis_set.ppm
 
     def init_lipid_labels(self):

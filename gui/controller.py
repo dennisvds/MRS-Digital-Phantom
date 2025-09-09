@@ -136,6 +136,7 @@ class Controller:
         volume = phantom.get_image_data()
         labels = phantom.get_label_data().numpy()
         lipid_mask = phantom.lipid_mask.numpy()
+        B0_map = phantom.get_B0_data()
         voxel_spacing = phantom.spacing
 
         volumes = {
@@ -143,6 +144,10 @@ class Controller:
             "Labels": labels,
             "Lipid mask": lipid_mask
         }
+
+        # If B0 map is available, add it to the volumes
+        if B0_map is not None:
+            volumes["B0 map"] = B0_map
 
         return (phantom, volumes, voxel_spacing)
 
@@ -189,6 +194,12 @@ class Controller:
             "Labels": labels,
             "Lipid mask": lipid_mask
         }
+
+        # If B0 map is available, add it to the volumes
+        B0_map = self.phantom.get_B0_data()
+        if B0_map is not None:
+            volumes["B0 map"] = B0_map
+
         self.data_volume = volumes
 
         # Update the data in the phantom viewer

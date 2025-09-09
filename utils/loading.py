@@ -13,6 +13,8 @@ def load_skeleton_as_subject(path2skeleton, skeleton_name):
         subject, label_names = load_bigbrain_files(path2skeleton)
     elif skeleton_name == 'MRiLab':
         subject, label_names = load_mrilab_files(path2skeleton)
+    elif skeleton_name == 'Custom':
+        subject, label_names = load_custom_files(path2skeleton)
     else:
         raise NotImplementedError('The requested skeleton is not implemented yet.')
 
@@ -101,6 +103,37 @@ def load_mrilab_files(path2skeleton):
     label_names = ['Background', 'WM', 'GM', 'CSF', 'Fat', 'Skull']
 
     return subject, label_names
+
+def load_custom_files(path2skeleton):
+    subject = tio.Subject(
+        labels=tio.LabelMap(os.path.join(path2skeleton, 'segmentation_labels.nii.gz')),
+        T1=tio.ScalarImage(os.path.join(path2skeleton, 'T1_brain.nii.gz')),
+        B0=tio.ScalarImage(os.path.join(path2skeleton, 'B0_brain.nii.gz')),
+    )
+
+    labels = subject['labels'].data[0]
+    old_labels = labels.clone()
+    # Original labelling: GM=1, WM=2, CSF=3, Bone=4, Soft=5
+    # Processing to background (0), white matter (1), gray matter (2), CSF (3)
+    # Fat and skull cannot be used properly because of the brain stripping for anonymization
+    labels[old_labels == 1] = 2
+    labels[old_labels == 2] = 1
+    labels[old_labels == 3] = 3
+    labels[old_labels >= 4] = 0
+
+    # Crearte whole brain mask
+    mask = (labels > 0).float()
+    mask = mask.unsqueeze(0)  # Add a channel dimension
+    subject['brain_mask'] = tio.LabelMap(tensor=mask, affine=subject['labels'].affine)
+    
+    subject['labels'].data[0] = labels
+
+    label_names = ['Background', 'WM', 'GM', 'CSF']
+
+    subject['labels'].affine = subject['T1'].affine  # force same affine/spacing
+
+    return subject, label_names
+
 
 def list_spectra_in_folder(folder_path, possible_components=['metabs', 'mms', 'lipids', 'water', 'noise']):
     """

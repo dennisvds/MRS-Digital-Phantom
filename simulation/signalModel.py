@@ -23,7 +23,7 @@ from simulation.water.water_sim import generate_sum_fid
 from simulation.run_matlab import MatlabRunner
 from utils.auxillary import calc_scale_factor, spec2fid, fid2spec
 from utils.definitions import H2O_CONCENTRATIONS
-from utils.visualization import plot_shim_map_process, plot_spectra
+from utils.visualization import plot_shim_map_process, plot_spectra, plot_b0_map_process
 
 #*************#
 # Signal Model #
@@ -46,7 +46,7 @@ class SignalModel:
         else:
             print(message)
 
-    def simulate_mrs_data(self, voi_labels, voi_lipid_mask, domain='ppm'):
+    def simulate_mrs_data(self, voi_labels, voi_lipid_mask, B0_map=None, domain='ppm'):
         """Simulate an MRS spectrum from input VOI labels and masks."""
         if self.simulation_params is None:
             self.log("❌ Simulation parameters not set. Please provide simulation parameters.", 'red')
@@ -60,8 +60,14 @@ class SignalModel:
         voxel_volume = torch.prod(torch.tensor(self.simulation_params['voxel_spacing']))
 
         # ---- Shim map simulation ---- #
-        self.log("Simulating shim map...")
-        self.shim_map = self.simulate_shim_map(voi_labels)
+        if B0_map is not None:
+            self.log("Using provided B0 map for shim imperfections...")
+            self.shim_map = torch.tensor(B0_map, dtype=torch.float32)
+            # Optional plot
+            plot_b0_map_process(voi_labels, B0_map, show=True)
+        else:
+            self.log("⚠️ No B0 map provided, simulating shim imperfections...")
+            self.shim_map = self.simulate_shim_map(voi_labels)
 
         # ---- Metabolite signal ---- #
         self.log("Simulating metabolites...")
@@ -336,7 +342,7 @@ class SignalModel:
         final_map[background_mask] = 0.0
 
         # Optional plot
-        # plot_shim_map_process(label_map, base, boundary_ampl, final_map, show=True)
+        plot_shim_map_process(label_map, base, boundary_ampl, final_map, show=True)
 
         return torch.tensor(final_map)
 

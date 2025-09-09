@@ -52,11 +52,11 @@ class MainWindow(QMainWindow):
 
         ### Create buttons for functionality ###
         self.load_phantom_button = QPushButton("Load Phantom")
-        self.load_phantom_button.clicked.connect(
-            lambda: self.controller.start_long_task(self.controller.load_phantom_data, self.controller.on_phantom_loaded)
-            )
-        # # Debug button:
-        # self.load_phantom_button.clicked.connect(self.controller.load_phantom_debug)
+        # self.load_phantom_button.clicked.connect(
+        #     lambda: self.controller.start_long_task(self.controller.load_phantom_data, self.controller.on_phantom_loaded)
+        #     )
+        # Debug button:
+        self.load_phantom_button.clicked.connect(self.controller.load_phantom_debug)
 
         left_layout.addWidget(self.load_phantom_button)
 
@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
 
         # Add dropdown menu for skeleton selection
         self.skeleton_dropdown = QComboBox()
-        self.skeleton_dropdown.addItems(["BigBrainMR", "MRiLab"])
+        self.skeleton_dropdown.addItems(["BigBrainMR", "MRiLab", "Custom"])
         self.skeleton_dropdown.setCurrentText(DEFAULT_SKELETON)
         skeleton_layout.addWidget(self.skeleton_dropdown)
     
@@ -181,11 +181,11 @@ class MainWindow(QMainWindow):
 
         # === Generate Button ===
         self.generate_spectrum_button = QPushButton("Generate Spectrum")
-        self.generate_spectrum_button.clicked.connect(
-            lambda: self.controller.start_long_task(self.controller.generate_spectrum, self.controller.on_spectrum_generated)
-            )
-        # # Debug button:
-        # self.generate_spectrum_button.clicked.connect(self.controller.generate_spectrum_debug)
+        # self.generate_spectrum_button.clicked.connect(
+        #     lambda: self.controller.start_long_task(self.controller.generate_spectrum, self.controller.on_spectrum_generated)
+        #     )
+        # Debug button:
+        self.generate_spectrum_button.clicked.connect(self.controller.generate_spectrum_debug)
         main_layout.addWidget(self.generate_spectrum_button)
 
         # === Save Button ===

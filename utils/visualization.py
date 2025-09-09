@@ -45,6 +45,62 @@ def get_slice(volume, slice_index=0, slice_axis=0):
     else:
         raise ValueError("slice_axis must be 0, 1, or 2.")
     
+def plot_b0_map_process(label_map, b0_map, slice_axis=2, slice_index=None, **kwargs):
+    """
+    Plot the B0 map process.
+    
+    Args:
+        label_map (np.ndarray): Label map.
+        b0_map (np.ndarray): B0 field map.
+        slice_axis (int): Axis along which to extract the slice (0, 1, or 2).
+        slice_index (int): Index of the slice to extract.
+    """
+
+    # collapse one-hot to int label map
+    label_map = np.array(label_map.real)
+    label_map = np.argmax(label_map, axis=3)  # shape (nx,ny,nz)
+
+    # Change orientation of label_map and b0_map to match orientation of the anatomical image
+    label_map = label_map[::-1, ::-1, ::-1].copy()
+    b0_map = b0_map[::-1, ::-1, ::-1].copy()
+
+    if slice_index is None:
+        slice_index = label_map.shape[slice_axis] // 2
+
+    # Compute symmetric color range
+    abs_max = abs(get_slice(b0_map, slice_index, slice_axis)).max()
+    vmin, vmax = -abs_max, abs_max
+
+    # Create figure with GridSpec (2 rows, 2 columns)
+    fig = plt.figure(figsize=(6, 6), dpi=300, constrained_layout=True)
+    gs = gridspec.GridSpec(2, 2, height_ratios=[1, 0.05], figure=fig)
+
+    # Top row: 2 plots
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+
+    # Shared colorbar: occupies the same width as the 2x2 plot grid
+    cax = fig.add_subplot(gs[1, 0:2])  # only the first two columns
+
+    # Plotting
+    ax1.imshow(get_slice(label_map, slice_index, slice_axis).T, cmap='grey')
+    ax1.set_title('Label Map')
+
+    im2 = ax2.imshow(get_slice(b0_map, slice_index, slice_axis).T, cmap='bwr', vmin=vmin, vmax=vmax)
+    ax2.set_title('B0 Field Map')
+
+    # Clean look
+    for ax in [ax1, ax2]:
+        ax.axis('off')
+        ax.set_aspect('equal')
+
+    # Shared colorbar
+    cbar = fig.colorbar(im2, cax=cax, orientation='horizontal')
+    cbar.set_label('B0 Offset (Hz)')
+
+    if kwargs.get('show', False):
+        plt.show()
+    
 
 # Plotting
 def plot_shim_map_process(label_map, base, boundary, final_map, slice_axis=2, slice_index=None, **kwargs):
