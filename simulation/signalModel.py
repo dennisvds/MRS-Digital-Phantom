@@ -64,7 +64,7 @@ class SignalModel:
             self.log("Using provided B0 map for shim imperfections...")
             self.shim_map = torch.tensor(B0_map, dtype=torch.float32)
             # Optional plot
-            plot_b0_map_process(voi_labels, B0_map, show=True)
+            # plot_b0_map_process(voi_labels, B0_map, show=True)
         else:
             self.log("⚠️ No B0 map provided, simulating shim imperfections...")
             self.shim_map = self.simulate_shim_map(voi_labels)
