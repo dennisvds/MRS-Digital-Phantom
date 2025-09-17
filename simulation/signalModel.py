@@ -342,7 +342,7 @@ class SignalModel:
         final_map[background_mask] = 0.0
 
         # Optional plot
-        plot_shim_map_process(label_map, base, boundary_ampl, final_map, show=True)
+        # plot_shim_map_process(label_map, base, boundary_ampl, final_map, show=True)
 
         return torch.tensor(final_map)
 
