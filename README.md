@@ -10,26 +10,51 @@ This repository contains the code for the **MRS Digital Brain Phantom Framework*
 
 ## Getting Started
 
-### Using Pixi
+### 1. Downloading Data
+To use the **BigBrain-MR phantom**, you can download the required data [**here**](https://zenodo.org/records/7432527).  
+The following files are needed for this project:  
+- `BigBrainMR_Labels_400um.nii.gz`  
+- `BigBrainMR_T1map_400um.nii.gz`  
+- `BigBrainMR_T2smodel_R2smap_400um.nii.gz`  
+- `BigBrainMR_Tweighted_400um.nii.gz`  
 
-On MacOS and linux you can use the [Pixi](https://pixi.sh/latest/) package manager to run the simulator.
+All files should be placed in the folder: `data/skeletons/BigBrainMR/`.  
+
+All other required data are included in this repository. If you would like to use your own skeletons, some adjustments to the code may be required.  
+
+
+### 2. Installation
+You can install and run the simulator in two ways:
+- **Option A:** Pixi (for Mac/Linux)
+- **Option B:** Conda (cross-platform)
+
+### Option A: Install & Run with Pixi
+
+On macOS and Linux you can use the [Pixi](https://pixi.sh/latest/) package manager to run the simulator.
 
 First [install Pixi](https://pixi.sh/latest/installation/) by running `curl -fsSL https://pixi.sh/install.sh | sh`
 
+Then, clone this repository:
+```bash
+git clone https://github.com/dennisvds/MRS-Digital-Phantom.git
+cd MRS-Digital-Phantom
+```
+
 Then run the simulator by calling `pixi run simulator` in the cloned repository.
 
-### Prerequisites
+### Option B: Install & Run with Conda
+#### Prerequisites
 
 Ensure the following dependencies are installed:
 
 - **[Python ≥ 3.10](https://www.python.org/)**  
-- **[Conda](https://docs.conda.io/en/latest/)** *(optional but recommended)*  
+- **[Conda](https://docs.conda.io/en/latest/)**  
 - **[Jupyter](https://jupyter.org/install)** (JupyterLab or Jupyter Notebook, to run `.ipynb` files)
 
 - **GNU Octave ≥ 4.0**  
   Required for simulating lipid signals and basis sets.
 
-  **Installation instructions:**
+  **Installation instructions for GNU:**
 
   - **Windows**  
     Download the latest *MinGW* version from the [GNU Octave website](https://www.gnu.org/software/octave/download.html).  
@@ -54,57 +79,40 @@ Ensure the following dependencies are installed:
 
   ```bash
   octave --version
-### Installation
 
-This project uses a `pyproject.toml` file to declare dependencies and package metadata according to [PEP 621](https://peps.python.org/pep-0621/). You can install the project and its dependencies using standard Python tools.
+Continue the installation by doing the following steps:
 
-### 1. Clone the repository
+#### 1. Clone the repository
 
 ```bash
 git clone https://github.com/dennisvds/MRS-Digital-Phantom.git
 cd MRS-Digital-Phantom
 ```
 
-### 2. Create and activate a new virtual environment (recommended)
-#### Using `conda`:
+#### 2. Create and activate a new virtual environment 
 ```bash
 conda create -n mrs-phantom python=3.10
 conda activate mrs-phantom
 ```
-#### Using `venv`:
+
+#### 3. Install dependencies
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # macOS/Linux
-.venv\Scripts\activate           # Windows
+conda install -c conda-forge -c https://fs/.fmrib.ox.ac.uk/fsldownloads/fslconda/public/
+fsl_mrs octave ipython jupyter_core pyqtgraph pytorch oct2py torchio
 ```
 
-### 3. Install dependencies
-To install all relevant dependencies, run:
+#### 4. Run the simulator
+With everything installed and the data in the correct folder structure, you can run the MRS digital phantom:
 ```bash
-pip install .
+python main.py
 ```
-This installs your package along with all dependencies listed in `pyproject.toml`
-
-### 4. Install `fsl-mrs`
-This project also depends on `fsl-mrs`, which cannot be installed via `pip`. If using `conda` you can install it using:
-```bash
-conda install -c conda-forge \
-              -c https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/ \
-              fsl_mrs
-```
-For detailed instructions and other install options, have a look at the [**Installation Instructions**](https://open.win.ox.ac.uk/pages/fsl/fsl_mrs/install.html) in the user documentation. 
-
-
-### 5. Downloading Data
-To use the **BigBrain-MR phantom**, you can download the data [**here**](https://zenodo.org/records/7432527). All other data is available in this respository. If you want to use your own skeletons adjustments to the code might be needed.
-
 
 ## Directory Structure
 The following directory structure is used in this project:
 ```
 MRS_Digital_Phantom/
 ├── data/                           # Main folder to store the data
-│   ├── bassissets/                 # Folder to store basissets
+│   ├── basissets/                  # Folder to store basissets
 │   ├── invivo/                     # In-vivo data for comparison analysis
 │   ├── macromolecules/             # Data for metabolite
 │   ├── metabolites/                # Data from the MRiLab phantom
@@ -118,11 +126,11 @@ MRS_Digital_Phantom/
 │   ├── plot_variations.ipynb       # Notebook used to generate paper results for variations in simulated data
 ├── outputs/                        # Folder containing simulation outputs used in the publication
 ├── simulation/                     # Folder with simulation scripts and signal models
-│   ├── basissets/                  # Code for generating basissets using MRSCloud [REF]
+│   ├── basissets/                  # Code for generating basissets (using MRSCloud)
 │   ├── FID-A/                      # FID-A code needed for basisset and lipid generation
-│   ├── lipids/                     # Code for generating lipid signal based on SimnTG
-│   ├── macromolecules/             # Code for generating macromolecules signals based on
-│   ├── water                       # Code for generating residual water signals based on
+│   ├── lipids/                     # Code for generating lipid signal (based on SimnTG)
+│   ├── macromolecules/             # Code for generating macromolecules signals
+│   ├── water                       # Code for generating residual water signals
 ├── utils/                          # Utility scripts for plotting, loading, and setting definitions
 ├── config.json                     # Example of a configuration file in .JSON format
 ├── main.py                         # Main script that runs the GUI
@@ -132,25 +140,18 @@ MRS_Digital_Phantom/
 ```
 
 ## Usage
-
-With everything installed and the data in the correct folder structure, you can run the MRS digital phantom:
-```bash
-python main.py
-```
-This will open the GUI, which may take a few moments to launch.
+When the GUI is opened, you will see the following screen:
 
 <figure style="text-align: center;">
     <img src="media/GUI.png" alt="Sample Figure" width="800" />
     <figcaption> Figure 2: Screenshot of the graphical user interface (GUI) of the digital MRS phantom. The left panel (green box) displays settings for the skeleton, metabolite dataframe, and basis set. The top panel (purple box) shows the three orthogonal brain views used for voxel placement. The bottom-middle section (blue box) contains the simulation settings panel and message box. The right panel (red box) visualizes the simulated spectrum, including its individual signal components. </figcaption>
 </figure>
 
-> #### Stability Note
-> While the GUI is fully functional and has been tested across platforms, users may occasionally encounter instability  
-> (e.g., unexpected crashes or segmentation faults), especially when using certain Python/Qt configurations or interactive environments.  
+> #### Stability Notes
+> While the GUI is fully functional and has been tested across platforms, users may occasionally encounter instability (e.g., unexpected crashes or segmentation faults), especially when using certain Python/Qt configurations or interactive environments. We recommend launching the GUI from a clean virtual environment and avoiding conflicting toolkits or background processes. > If issues persist, restarting the environment or switching between `pip` and `conda` installations of PyQt5 may help.
 >
-> We recommend launching the GUI from a clean virtual environment and avoiding conflicting toolkits or background processes.  
-> If issues persist, restarting the environment or switching between `pip` and `conda` installations of PyQt5 may help.  
-
+> In addition, the **BigBrain-MR phantom** requires substantial memory due to its high resolution. Simulations with moderate/large voxel sizes (> 2.5 cm) can easily exceed the available RAM on standard laptops or desktops and may cause crashes. We recommend either using smaller voxel sizes for testing or running BigBrain simulations on machines with ample memory.  
+ 
 
 ### Notebooks
 There are a couple of Jupyter Notebooks available in this repository that will go over the batch-wise generation of spectra and analysis methods. These notebooks were used to create the figures in the corresponding paper. [View the Notebooks](https://github.com/dennisvds/MRS_Digital_Phantom/blob/main/Demo_MRS_Phantom.ipynb).
