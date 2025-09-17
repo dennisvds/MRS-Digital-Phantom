@@ -97,7 +97,7 @@ conda activate mrs-phantom
 
 #### 3. Install dependencies
 ```bash
-conda install -c conda-forge -c https://fs/.fmrib.ox.ac.uk/fsldownloads/fslconda/public/
+conda install -c conda-forge -c https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/ \
 fsl_mrs octave ipython jupyter_core pyqtgraph pytorch oct2py torchio
 ```
 
