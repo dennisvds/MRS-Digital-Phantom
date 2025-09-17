@@ -16,7 +16,7 @@ The following files are needed for this project:
 - `BigBrainMR_Labels_400um.nii.gz`  
 - `BigBrainMR_T1map_400um.nii.gz`  
 - `BigBrainMR_T2smodel_R2smap_400um.nii.gz`  
-- `BigBrainMR_Tweighted_400um.nii.gz`  
+- `BigBrainMR_T1weighted_400um.nii.gz`  
 
 All files should be placed in the folder: `data/skeletons/BigBrainMR/`.  
 
