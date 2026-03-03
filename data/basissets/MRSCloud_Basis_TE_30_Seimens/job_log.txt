@@ -1,0 +1,249 @@
+------------------------------------------
+Setting up environment variables
+---
+LD_LIBRARY_PATH is .:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/runtime/glnxa64:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/bin/glnxa64:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/sys/os/glnxa64:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/sys/java/jre/glnxa64/jre/lib/amd64/native_threads:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/sys/java/jre/glnxa64/jre/lib/amd64/server:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/sys/java/jre/glnxa64/jre/lib/amd64/client:/export/io23/local/mricloud/library/MATLAB_Compiler_Runtime/v81/sys/java/jre/glnxa64/jre/lib/amd64
+Warning: No display specified.  You will not be able to display graphics on the screen.
+Starting matlabpool using the 'local' profile ... connected to 12 workers.
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Cr simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+NAA simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+H2O simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+CrCH2 simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Asc simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Gln simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+NAAG simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Asp simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Glu simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+PCh simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Cr simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Gly simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+PCr simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+EA simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+H2O simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+PE simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+GABA simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Lac simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Ser simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+GPC simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+mI simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+sI simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+GSH simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+NAA simulation at TE 30 ms
+
+format .pta RF pulse file detected!! Loading waveform now.
+format .pta RF pulse file detected!! Loading waveform now.
+
+ans =
+
+Tau simulation at TE 30 ms
+
+Sending a stop signal to all the workers ... stopped.
+Elapsed time is 143.618081 seconds.
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 
+Warning: Imaginary parts of complex X and/or Y arguments ignored
+[> In fit_plotBasis at 72
+  In run_simulations_cloud at 191] 

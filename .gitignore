@@ -1,0 +1,20 @@
+# Ignore checkpoint files and other temporary files
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
+build/
+
+# Ignore output
+out/
+phantom_* 
+
+# Ignore some data files (because of their size)
+data/skeletons/BigBrainMR/*
+!data/skeletons/BigBrainMR/.gitkeep
+!data/skeletons/BigBrainMR/README.md
+
+**/derivatives/**/*.mat
+
+# pixi environments
+.pixi
+*.egg-info

@@ -1,0 +1,52 @@
+import scipy.io as sio
+import numpy as np
+
+
+# Path to your existing water basis
+
+in_path = "/home/path/to/water_basis_data/Siemens_UnEdited_PRESS_TE30_H2O.mat" #Can be generated using MRS_Cloud 
+#For example /home/MRS-Digital-Phantom/data/basissets/MRSCloud_Basis_TE_30_Seimens/Siemens_UnEdited_PRESS_TE30_H2O.mat
+
+# Output file
+out_path = "/home/path/to/Simulated_Water_Data"
+
+
+# Load .mat file
+mat = sio.loadmat(in_path)
+
+
+# Find water FID key automatically
+# (works for most MRSCloud basis files)
+
+possible_keys = ["fids", "fid", "basis", "specs"]
+
+water_key = None
+for k in possible_keys:
+    if k in mat:
+        water_key = k
+        break
+
+if water_key is None:
+    raise ValueError("Could not find water FID inside .mat file. Check keys with print(mat.keys())")
+
+print(f"Using key: {water_key}")
+
+water_fid = mat[water_key]
+
+
+# SCALE WATER TO REAL CONCENTRATION
+
+WATER_CONC = 55000  # mmol/kg (GM-like unsuppressed reference)
+
+water_fid_scaled = water_fid * WATER_CONC
+
+# Replace inside structure
+mat[water_key] = water_fid_scaled
+
+
+# Save new file
+sio.savemat(out_path, mat)
+
+print("Done.")
+print("Saved:", out_path)
+

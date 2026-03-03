@@ -1,0 +1,63 @@
+{
+    "userInput": {
+        "tm": 30,
+        "metablist": [
+            "Asc",
+            "Gln",
+            "NAAG",
+            "Asp",
+            "Glu",
+            "PCh",
+            "Cr",
+            "Gly",
+            "PCr",
+            "EA",
+            "H2O",
+            "PE",
+            "GABA",
+            "Lac",
+            "Ser",
+            "GPC",
+            "mI",
+            "sI",
+            "GSH",
+            "NAA",
+            "Tau"
+        ],
+        "vendor": [
+            "Siemens"
+        ],
+        "mega_or_hadam": [
+            "UnEdited"
+        ],
+        "localization": [
+            "PRESS"
+        ],
+        "editTarget": [
+            "GABA"
+        ],
+        "TE": 30,
+        "editOn": 1.9,
+        "editOff": 7.5,
+        "editTp": 14,
+        "spatial_points": 101,
+        "email_address": "arijit.bhattacharya_phd23@ashoka.edu.in"
+    },
+    "private": {
+        "metab_default": [
+            "Cr",
+            "NAA",
+            "H2O",
+            "CrCH2"
+        ],
+        "metab_default_2": [
+            "H2O"
+        ],
+        "flipAngle": 180,
+        "centreFreq": 3,
+        "edit_flipAngle": 180,
+        "excflipAngle": 90
+    },
+    "DIRECTORY": {
+    }
+}
