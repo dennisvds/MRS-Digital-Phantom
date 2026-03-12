@@ -18,3 +18,6 @@ data/skeletons/BigBrainMR/*
 # pixi environments
 .pixi
 *.egg-info
+
+# Ignore VSCode settings
+.vscode/

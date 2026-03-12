@@ -55,6 +55,10 @@ class SignalModel:
         spec = torch.zeros((self.basis.n), dtype=torch.complex64)
         voi_labels = voi_labels.to(torch.complex64)
         voi_labels_flat = voi_labels.view(-1, voi_labels.shape[-1])
+        
+        # ---- Compute tissue fractions in VOI ----
+        # NEW: compute fractional contribution of each tissue within the selcted Voxel (used for voxel-weighted concentration mixing)
+        tissue_fractions = voi_labels_flat.mean(dim=0).real 
 
         # Calculate the voxel volume in mm^3
         voxel_volume = torch.prod(torch.tensor(self.simulation_params['voxel_spacing']))
@@ -78,6 +82,22 @@ class SignalModel:
         spec_metabs *= voxel_volume  # Scale by voxel volume
         spec_metabs = spec_metabs.sum((0, 1, 2))  # Sum over the VOI dimensions
         spec += spec_metabs
+        
+        # ---- NEW : voxel-weighted concentrations ----
+        if hasattr(self, "sampled_concs_per_tissue"): # NEW: ensure per-tissue sampled concentrations exist before computing voxel-weighted values
+            voxel_concs = {} # NEW: initialize dictionary to accumulate voxel-averaged metabolite concentrations
+            
+            for i, label in enumerate(self.labels):         # NEW: iterate over tissue labels present in the signal model
+                frac = float(tissue_fractions[i])         # NEW: retrieve fractional volume contribution of current tissue to VOI
+                tissue_dict = self.sampled_concs_per_tissue.get(label, {})         # NEW: access sampled metabolite concentrations for the selected tissue
+                for metab, val in tissue_dict.items():             # NEW: loop through metabolites sampled in this tissue
+                    voxel_concs[metab] = voxel_concs.get(metab, 0.0) + frac * val               # NEW: accumulate voxel-weighted concentration using linear mixture model      
+            self.final_voxel_concentrations = voxel_concs     # NEW: store final voxel-averaged metabolite concentrations 
+            self.voxel_tissue_fractions = {
+                label: float(tissue_fractions[i])
+                for i, label in enumerate(self.labels)     # NEW: store tissue fractions used in the voxel mixture model
+            }
+                
 
         # ---- Macromolecule signal ---- #
         self.log("Simulating macromolecules...")
@@ -140,10 +160,10 @@ class SignalModel:
 
         # # Creatine index for peak area estimation
         # cr_idx = self.basis.names.index('Cr')   
-        # # Extract creatine spectrum from basis set
+        # # # Extract creatine spectrum from basis set
         # cr_fid = fids[0,:,cr_idx]
         # cr_spec = torch.fft.fftshift(torch.fft.fft(cr_fid, dim=0), dim=0)
-        # # Find the methyl peak area (-CH3 group with 3 protons, ~ 3.0 ppm)
+        # # # Find the methyl peak area (-CH3 group with 3 protons, ~ 3.0 ppm)
         # ch3_spec = cr_spec[(self.basis.ppm > 2.9) & (self.basis.ppm < 3.2)]
         # ppm_axis = self.basis.ppm[(self.basis.ppm > 2.9) & (self.basis.ppm < 3.2)]
         # ch3_area = simpson(ch3_spec.real, x=ppm_axis)
@@ -151,6 +171,7 @@ class SignalModel:
 
         # Extract metabolite concentrations for the given labels
         metab_specs = []
+        sampled_concs_per_tissue = {} # NEW: dictionary to store sampled metabolite concentrations for each tissue type
         for label in self.labels:
             # Subset dataframe based on tissue label
             df = metab_df[metab_df['Tissue'] == label]
@@ -158,6 +179,7 @@ class SignalModel:
             # If no metabolites are present in the dataframe for this label, set the spectrum to zero
             if df.shape[0] == 0:
                 metab_specs.append(torch.zeros((1, self.basis.n), dtype=torch.complex64))
+                sampled_concs_per_tissue[label] = {} # NEW: ensure empty dictionary stored for tissues without metabolites in dataframe
                 continue
 
             # Concentrations
@@ -166,6 +188,12 @@ class SignalModel:
             concs_mean[torch.isnan(concs_mean)] = 0.0  # Set NaN to zero
             concs_std[torch.isnan(concs_std)] = 0.0    # Set NaN to zero
             concs = torch.normal(concs_mean, concs_std)  # Sample from normal distribution
+            
+            # NEW: store sampled concentrations for this tissue
+            sampled_concs_per_tissue[label] = {
+                metab_name: float(conc)
+                for metab_name, conc in zip(df['Metabolite'].values, concs)
+            } # NEW: store metabolite concentrations sampled for this tissue before spectral synthesis
 
             # T2 relaxation (Lorentzian linewidth)
             t2s = torch.tensor(df['T2'].values)
@@ -193,6 +221,8 @@ class SignalModel:
         # Convert to tensor (torch.complex64)
         metab_specs = torch.stack(metab_specs, dim=0).squeeze()
         metab_specs = metab_specs.to(torch.complex64)
+        
+        self.sampled_concs_per_tissue = sampled_concs_per_tissue # NEW: save per-tissue sampled concentrations to SignalModel object for later retrieval and voxel mixing
 
         return metab_specs
 
@@ -291,6 +321,8 @@ class SignalModel:
         # Stack the water spectra for each label
         water_specs = torch.stack(water_specs, dim=0)  # Shape: (l, x, y, z, n_points)
         water_specs = water_specs.to(torch.complex64)  # Convert to complex64
+        if self.simulation_params.get("save_unsuppressed_water", True):
+            self.unsuppressed_water = water_specs.clone()
 
         return water_specs
     
@@ -371,9 +403,3 @@ class SignalModel:
         # Transform back to frequency domain
         specs_mod = fid2spec(fids_mod, axis=-1)
         return specs_mod
-
-
-
-
-
-

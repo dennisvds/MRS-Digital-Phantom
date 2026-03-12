@@ -260,4 +260,3 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"Error loading metabolites from path: {e}")
     
-

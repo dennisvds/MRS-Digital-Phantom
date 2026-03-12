@@ -144,7 +144,12 @@ class DigitalPhantom:
             voi_B0_map = self.get_B0_data()[x0:x1, y0:y1, z0:z1]
 
         spec, components = self.signal_model.simulate_mrs_data(voi_labels, voi_lipid_mask, B0_map=voi_B0_map if 'B0' in self.subject else None)
-        return spec, components, self.basis_set.t, self.basis_set.ppm
+        print("\n=== Sampled concentrations per tissue ===")  # NEW: debug print to display per-tissue sampled concentrations for the current voxel simulation
+        print(self.signal_model.sampled_concs_per_tissue) # NEW: accesses SignalModel storage dict and prints sampled concentrations drawn for each tissue
+        return spec, components, self.basis_set.t, self.basis_set.ppm, voi_labels
+    
+
+
 
     def init_lipid_labels(self):
         """

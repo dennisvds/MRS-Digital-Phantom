@@ -210,7 +210,7 @@ class Controller:
 
         # Simulate the MRS data
         self.gui.log_message("🧠 Simulating MRS data...")
-        simulated_spec, components, time_axis, ppm_axis = self.phantom.simulate_data(coords)
+        simulated_spec, components, time_axis, ppm_axis, _ = self.phantom.simulate_data(coords)
 
 
         return (simulated_spec, components, time_axis, ppm_axis)
@@ -326,6 +326,9 @@ class Controller:
         simulation_params['voxel_definitions'] = voxel_definition
 
         save_nifti_mrs(save_path, total_selection, individual_selection, components, affine, dwelltime, spec_freq, nucleus='1H',
-                       sim_params=simulation_params)
+                       sim_params=simulation_params,
+                       sampled_per_tissue=getattr(self.phantom.signal_model, 'sampled_concs_per_tissue', None),
+                       voxel_weighted=getattr(self.phantom.signal_model, 'final_voxel_concentrations', None),
+                       tissue_fractions=getattr(self.phantom.signal_model, 'voxel_tissue_fractions', None))
 
 

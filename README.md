@@ -171,5 +171,11 @@ Should you publish any material that made use of this MRS Phantom Framework, ple
 This project is licensed under the [MIT License](https://github.com/dennisvds/MRS_Digital_Phantom/blob/main/LICENSE.md).
 
 ## Acknowledgments
+
+We also thank all contributors who made practical improvements to this project through testing, debugging, and implementation updates:
+
+- William T. Clarke
+- Arijit Bhattacharya
+
 This work has been (partially) funded by:
 - European ITEA4 program (project 20209)

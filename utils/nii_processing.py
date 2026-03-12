@@ -13,8 +13,30 @@ from nibabel.nifti1 import Nifti1Extension
 from utils.auxillary import spec2fid, fid2spec
 
 
+def save_ground_truth_concentrations(
+    save_dir,
+    sampled_per_tissue=None,
+    voxel_weighted=None,
+    tissue_fractions=None,
+    file_name="concentrations.json",
+):
+    """Save concentration ground truth information as JSON and return its path."""
+    os.makedirs(save_dir, exist_ok=True)
+    out_path = os.path.join(save_dir, file_name)
+    payload = {
+        "sampled_per_tissue": sampled_per_tissue or {},
+        "voxel_weighted": voxel_weighted or {},
+        "tissue_fractions": tissue_fractions or {},
+    }
+    with open(out_path, "w") as f:
+        json.dump(payload, f, indent=2)
+    return out_path
+
+
 def save_nifti_mrs(save_dir, total_selection, individual_selection, components_data, affine, dwelltime,
-                   spec_freq, nucleus='1H', sim_params=None, base_name=None):
+                   spec_freq, nucleus='1H', sim_params=None, base_name=None,
+                   sampled_per_tissue=None, voxel_weighted=None, tissue_fractions=None,
+                   concentrations_file_name='concentrations.json'):
     """
     Save selected MRS components as NIfTI-MRS files, each in its own subfolder.
 
@@ -29,6 +51,10 @@ def save_nifti_mrs(save_dir, total_selection, individual_selection, components_d
     - nucleus (str): Resonant nucleus, default '1H'.
     - sim_params (dict): Optional simulation parameter metadata.
     - base_name (str): Optional base name for output folder.
+    - sampled_per_tissue (dict): Optional per-tissue sampled concentration dictionary.
+    - voxel_weighted (dict): Optional final voxel-weighted concentrations.
+    - tissue_fractions (dict): Optional voxel tissue fractions.
+    - concentrations_file_name (str): Optional JSON filename for concentration ground truth.
     """
 
     def _generate_base_name():
@@ -111,6 +137,16 @@ def save_nifti_mrs(save_dir, total_selection, individual_selection, components_d
     if sim_params:
         with open(os.path.join(spectrum_folder, "sim_params.json"), 'w') as f:
             json.dump(sim_params, f, indent=4)
+
+    # Save concentration ground truth when provided.
+    if any(value is not None for value in (sampled_per_tissue, voxel_weighted, tissue_fractions)):
+        save_ground_truth_concentrations(
+            save_dir=spectrum_folder,
+            sampled_per_tissue=sampled_per_tissue,
+            voxel_weighted=voxel_weighted,
+            tissue_fractions=tissue_fractions,
+            file_name=concentrations_file_name,
+        )
 
     print(f"Saved spectrum to {spectrum_folder}")
 

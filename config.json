@@ -4,8 +4,7 @@
     "basis_set_dir": "data/basissets/",
     "path2basis": "data/basissets/LCModel_Universal_Philips_UnEdited_PRESS_TE35.BASIS",
     "metabs": [
-        [],[],[],[],[],[],[],[],[],[],
-        [],[],[],[],[],[],[],[],[],[]
+        []
     ],
 
     "basis_set_settings":{

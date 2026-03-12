@@ -15,8 +15,8 @@ def preprocess_metab_df():
 
 if __name__ == '__main__':
     # Uncomment the following line to preprocess the metabolite DataFrame first
-    # preprocess_metab_df()
+    preprocess_metab_df()
 
     # Start the main application
-    main()
+    # main()
     
